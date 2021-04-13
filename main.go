@@ -14,7 +14,7 @@ func mainHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	serviceHandler := model.ServiceHandler{}
+	serviceHandler := model.NewServiceHandler()
 	http.HandleFunc("/service", serviceHandler.Controller)
 
 	nodehandler := model.NodeHandler{}

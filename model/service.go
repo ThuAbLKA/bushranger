@@ -12,7 +12,7 @@ import (
 type Service struct {
 	ID          string `json: "Id"`
 	Description string `json: "description"`
-	Nodes       []Node
+	Nodes       []Node `json: "nodes"`
 }
 
 type ServiceDao struct {
@@ -33,6 +33,18 @@ type ServiceRespository struct {
 // ServiceHandler
 type ServiceHandler struct {
 	repository ServiceRespository
+}
+
+func NewServiceHandler() *ServiceHandler {
+	handler := new(ServiceHandler)
+	handler.repository.store = make(map[string]Service)
+
+	return handler
+}
+
+func (c *Service) AddNode(node Node) []Node {
+	c.Nodes = append(c.Nodes, node)
+	return c.Nodes
 }
 
 // Controller
@@ -62,27 +74,27 @@ func (c *ServiceHandler) Controller(res http.ResponseWriter, req *http.Request) 
 		// check whether the service is already there
 		extservice := c.repository.store[newrec.ID]
 
-		if &extservice != nil {
-			// add a new node to the service
-			node := Node{
-				ID:           util.GenerateId(),
-				ServiceName:  newrec.ServiceName,
-				Host:         newrec.Host,
-				Port:         newrec.Port,
-				Secure:       newrec.Secure,
-				HealthCheck:  newrec.HealthCheck,
-				LastCheck:    time.Now(),
-				FirstContact: time.Now(),
-			}
-			extservice.Nodes = append(extservice.Nodes, node)
-		} else {
+		node := Node{
+			ID:           util.GenerateId(),
+			ServiceName:  newrec.ServiceName,
+			Host:         newrec.Host,
+			Port:         newrec.Port,
+			Secure:       newrec.Secure,
+			HealthCheck:  newrec.HealthCheck,
+			LastCheck:    time.Now(),
+			FirstContact: time.Now(),
+		}
+
+		if extservice.ID == "" {
 			// add new service
 			service := Service{
 				ID:          newrec.ServiceName,
 				Description: newrec.Description,
-				Nodes:       []Node{},
+				Nodes:       []Node{node},
 			}
 			c.repository.store[newrec.ID] = service
+		} else {
+			extservice.Nodes = extservice.AddNode(node)
 		}
 
 	}
