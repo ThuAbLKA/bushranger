@@ -6,6 +6,7 @@ import (
 
 	"github.com/ThuAbLKA/bushranger/model"
 	"github.com/ThuAbLKA/bushranger/util"
+	"github.com/go-redis/redis/v8"
 )
 
 func mainHandler(res http.ResponseWriter, req *http.Request) {
@@ -14,7 +15,11 @@ func mainHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	serviceHandler := model.NewServiceHandler()
+	rdb := redis.NewClient(&redis.Options{
+		Addr: "localhost:6379",
+	})
+
+	serviceHandler := model.NewServiceHandler(rdb)
 	http.HandleFunc("/service", serviceHandler.Controller)
 
 	nodehandler := model.NodeHandler{}
